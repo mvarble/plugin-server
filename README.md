@@ -87,11 +87,12 @@ function solve(factors::Vector{Int64}, upper_bound::Int64)::Int64
 
 ## TODO
 
-- [x] trait `SolverLibrary` for accessing imported library code.
+- [x] trait `LibraryBuilder` for importing libraries.
+- [x] trait `Library` for imported library API.
 - [x] struct `LibraryTester` for testing imported library code.
 - [ ] FFIs
-  - [x] implementation of `SolverLibrary` for C library.
-  - [x] implementation of `SolverLibrary` for Rust library.
-  - [ ] implementation of `SolverLibrary` for Python library.
-  - [ ] implementation of `SolverLibrary` for Julia library.
+  - [x] implementation of `Library` for C library.
+  - [x] implementation of `Library` for Rust library.
+  - [ ] implementation of `Library` for Python library.
+  - [ ] implementation of `Library` for Julia library.
 - [x] warp server which allows submissions.
