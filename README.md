@@ -9,8 +9,8 @@ The webservice will behave like follows.
 
 ```json 
 { 
-  "library": "/path/to/dir", 
-  "language": "python"
+  "library": "/path/to/dir/", 
+  "language": "Python"
 } 
 ```
 
@@ -44,16 +44,31 @@ Below are explanations for how a user provides a library which solves the proble
 
 To provide a library written in C which solves the problem, the user must provide a dynamically linked shared object library `filename.so` which links to a function of the following signature.
 ```C
-int solve(int factor_count, int factors[factor_count], int upper_bound)
+int solve(int factor_count, int (*factors)[factor_count], int upper_bound)
 ```
 
 ### Rust
 
 To provide a library written in Rust which solves the problem, the user must provide a crate which builds shared C-library targets.
-This project provides a helper crate based off of [this blog post](https://adventures.michaelfbryan.com/posts/plugins-in-rust/) which allows the user to quickly do such a thing.
 The library must provide a function of the following signature.
 ```rust
-fn solve(factors: &[u64], upper_bound: u64) -> u64
+#[no_mangle]
+pub unsafe extern "C" fn solve(factor_count: u64, factors: *const u64, upper_bound: u64) -> u64
+```
+The safety contract is satisfied by virtue of how it will be called.
+```rust
+// factors: &[u64]
+solve(factors.len() as u64, factors.as_ptr(), upper_bound)
+```
+Note that we can write a clean api before providing the nasty C one.
+```rust
+// fn solver(factors: &[u64], upper_bound: u64) -> u64
+
+#[no_mangle]
+pub unsafe extern "C" fn solve(factor_count: u64, factors: *const u64, upper_bound: u64) -> u64 {
+    let factors = std::slice::from_raw_parts(factors, factor_count as usize);
+    solver(factors, upper_bound)
+}
 ```
 
 ### Python
@@ -75,8 +90,8 @@ function solve(factors::Vector{Int64}, upper_bound::Int64)::Int64
 - [x] trait `SolverLibrary` for accessing imported library code.
 - [x] struct `LibraryTester` for testing imported library code.
 - [ ] FFIs
-  - [ ] implementation of `SolverLibrary` for C library.
-  - [ ] implementation of `SolverLibrary` for Rust library.
+  - [x] implementation of `SolverLibrary` for C library.
+  - [x] implementation of `SolverLibrary` for Rust library.
   - [ ] implementation of `SolverLibrary` for Python library.
   - [ ] implementation of `SolverLibrary` for Julia library.
-- [ ] warp server which allows submissions.
+- [x] warp server which allows submissions.
