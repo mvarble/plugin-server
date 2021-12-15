@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use super::{Library, LibraryLoader};
+use super::{Library, LibraryLoader, LoadError, Result};
 
 /// The library loader for C libraries.
 ///
@@ -21,9 +21,9 @@ pub struct CLibraryLoader;
 
 unsafe impl LibraryLoader for CLibraryLoader {
     type Library = CLibrary;
-    unsafe fn load(&self, dir: PathBuf) -> Result<CLibrary, libloading::Error> {
+    unsafe fn load(dir: PathBuf) -> Result<CLibrary> {
         // load the library
-        let library = libloading::Library::new(dir.join("libsolve.so"))?;
+        let library = libloading::Library::new(dir.join("libsolve.so")).map_err(|_| LoadError)?;
 
         // return the CLibrary struct
         Ok(CLibrary(library))
@@ -41,7 +41,7 @@ impl Library for CLibrary {
     /// directory with a file `libsolver.so` which has a function
     ///
     /// ```C
-    /// int solve(int factor_count, int factors[factor_count], int upper_bound)
+    /// int solve(int factor_count, int (*factors)[factor_count], int upper_bound)
     /// ```
     fn solve(&self, factors: &[u64], upper_bound: u64) -> u64 {
         unsafe {
@@ -54,6 +54,6 @@ impl Library for CLibrary {
 
 #[test]
 fn test_api() {
-    let lib = unsafe { (CLibraryLoader {}).load("./examples/c/".into()).unwrap() };
+    let lib = unsafe { CLibraryLoader::load("./examples/c/".into()).unwrap() };
     assert_eq!(lib.solve(&[3, 5], 10), 3 + 5 + 6 + 9);
 }

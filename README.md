@@ -93,6 +93,7 @@ function solve(factors::Vector{Int64}, upper_bound::Int64)::Int64
 - [ ] FFIs
   - [x] implementation of `Library` for C library.
   - [x] implementation of `Library` for Rust library.
-  - [ ] implementation of `Library` for Python library.
+  - [x] implementation of `Library` for Python library.
   - [ ] implementation of `Library` for Julia library.
+- [ ] Clean up API so that it is not so funky.
 - [x] warp server which allows submissions.

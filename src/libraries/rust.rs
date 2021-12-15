@@ -2,8 +2,8 @@
 
 use std::path::PathBuf;
 
-use super::c::{CLibrary, CLibraryLoader};
-use super::{Library, LibraryLoader};
+use super::c::CLibrary;
+use super::{LibraryLoader, LoadError, Result};
 
 /// The library loader for Rust libraries.
 ///
@@ -24,10 +24,10 @@ pub struct RustLibraryLoader;
 
 unsafe impl LibraryLoader for RustLibraryLoader {
     type Library = CLibrary;
-    unsafe fn load(&self, dir: PathBuf) -> Result<CLibrary, libloading::Error> {
+    unsafe fn load(dir: PathBuf) -> Result<CLibrary> {
         // load the library
-        let library =
-            libloading::Library::new(dir.join("target").join("release").join("libsolve.so"))?;
+        let path = dir.join("target").join("release").join("libsolve.so");
+        let library = libloading::Library::new(path).map_err(|_| LoadError)?;
 
         // return the CLibrary struct
         Ok(CLibrary(library))
@@ -36,10 +36,7 @@ unsafe impl LibraryLoader for RustLibraryLoader {
 
 #[test]
 fn test_api() {
-    let lib = unsafe {
-        (RustLibraryLoader {})
-            .load("./examples/rust".into())
-            .unwrap()
-    };
+    use super::Library;
+    let lib = unsafe { RustLibraryLoader::load("./examples/rust".into()).unwrap() };
     assert_eq!(lib.solve(&[3, 5], 10), 3 + 5 + 6 + 9);
 }

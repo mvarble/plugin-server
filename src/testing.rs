@@ -25,8 +25,10 @@ impl LibraryTester {
     }
 
     /// Test a library for a given set of inputs and return serializable data.
-    pub fn test<L: Library>(library: &L, arguments: SolverArguments) -> TestData {
-        let solution = library.solve(&arguments.factors, arguments.upper_bound);
+    pub fn test<L: AsRef<dyn Library>>(library: L, arguments: SolverArguments) -> TestData {
+        let solution = library
+            .as_ref()
+            .solve(&arguments.factors, arguments.upper_bound);
         let proposal = LibraryTester::correct(&arguments.factors, arguments.upper_bound);
         TestData {
             arguments,
@@ -37,7 +39,7 @@ impl LibraryTester {
     }
 
     /// Run random tests on a library to see how successful it is.
-    pub fn random_tests<L: Library, R: Rng + ?Sized>(
+    pub fn random_tests<L: AsRef<dyn Library>, R: Rng + ?Sized>(
         library: &L,
         test_count: usize,
         rng: &mut R,
@@ -149,7 +151,7 @@ fn test_api() {
 
     // perform random tests on an instance of this ad hoc library
     const COUNT: usize = 100;
-    let library = InternalTestLibrary {};
+    let library: Box<dyn Library> = Box::new(InternalTestLibrary {});
     let outcomes = LibraryTester::random_tests(&library, COUNT, &mut rand::thread_rng());
 
     // see if it behaves accordingly
